@@ -150,12 +150,10 @@ public class PurchasePlugin
         getPurchases();
       } else if ("consumePurchase".equals(action)) {
         final String sku = data.getString(0);
-        final String developerPayload = data.getString(2);
-        consumePurchase(sku, developerPayload);
+        consumePurchase(sku);
       } else if ("acknowledgePurchase".equals(action)) {
         final String sku = data.getString(0);
-        final String developerPayload = data.getString(2);
-        acknowledgePurchase(sku, developerPayload);
+        acknowledgePurchase(sku);
       } else if ("buy".equals(action)) {
         buy(data);
       } else if ("subscribe".equals(action)) {
@@ -474,6 +472,8 @@ public class PurchasePlugin
     final JSONObject additionalData = data.getJSONObject(1);
 
     // NOTE: developerPayload isn't supported anymore.
+    // https://developer.android.com/google/play/billing/developer-payload
+
     // Specify the SKU that the user is upgrading or downgrading from.
     String oldSku = null;
     if (additionalData.has("oldPurchasedSkus")) {
@@ -612,7 +612,7 @@ public class PurchasePlugin
   }
 
   // Consume a purchase
-  private void consumePurchase(final String sku, final String developerPayload) throws JSONException {
+  private void consumePurchase(final String sku) throws JSONException {
     Log.d(mTag, "consumePurchase(" + sku + ")");
     // Find the purchaseToken from sku
     final Purchase purchase = findPurchaseBySku(sku);
@@ -632,14 +632,14 @@ public class PurchasePlugin
     executeServiceRequest(() -> {
       final ConsumeParams params = ConsumeParams.newBuilder()
         .setPurchaseToken(purchaseToken)
-        .setDeveloperPayload(developerPayload)
+        // .setDeveloperPayload(developerPayload) (removed in v3)
         .build();
       mBillingClient.consumeAsync(params, this);
     });
   }
 
   // Acknowledge a purchase
-  private void acknowledgePurchase(final String sku, final String developerPayload) throws JSONException {
+  private void acknowledgePurchase(final String sku) throws JSONException {
     Log.d(mTag, "acknowledgePurchase(" + sku + ")");
     // Find the purchaseToken from sku
     final Purchase purchase = findPurchaseBySku(sku);
@@ -652,7 +652,7 @@ public class PurchasePlugin
     executeServiceRequest(() -> {
       final AcknowledgePurchaseParams params = AcknowledgePurchaseParams.newBuilder()
         .setPurchaseToken(purchaseToken)
-        .setDeveloperPayload(developerPayload)
+        // .setDeveloperPayload(developerPayload) (removed in v3)
         .build();
       mBillingClient.acknowledgePurchase(params, this);
     });
